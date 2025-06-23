@@ -20,11 +20,17 @@ export default function Page() {
   useEffect(() => {
     const tg = (window as any).Telegram?.WebApp;
     tg?.ready();
-    const u = tg?.initDataUnsafe?.user;
-    if (u) {
+    if (tg?.initDataUnsafe?.user) {
+      const u = tg.initDataUnsafe.user;
       setUser({
-        name: `${u.first_name || ''} ${u.last_name || ''}`.trim(),
-        photo_url: u.photo_url || 'https://cdn-icons-png.flaticon.com/512/149/149071.png',
+        name: `${u.first_name ?? ''} ${u.last_name ?? ''}`.trim(),
+        photo_url: u.photo_url ?? 'https://cdn-icons-png.flaticon.com/512/149/149071.png',
+      });
+    } else {
+      // fallback avatar + label if Telegram user object not found
+      setUser({
+        name: 'Guest',
+        photo_url: 'https://cdn-icons-png.flaticon.com/512/149/149071.png',
       });
     }
     if (tonConnectUI.account?.address) {
