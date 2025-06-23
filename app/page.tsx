@@ -104,3 +104,77 @@ export default function Home() {
 >
   Купить NFT за 2 TON
 </button>
+import { TonConnectButton, useTonAddress, useTonConnectUI } from "@tonconnect/ui-react";
+
+export default function Home() {
+  const [tonConnectUI] = useTonConnectUI();
+  const userWallet = useTonAddress();
+
+  const handleBuy = () => {
+    if (!userWallet) {
+      alert("Сначала подключите TON-кошелёк.");
+      return;
+    }
+
+    tonConnectUI.sendTransaction({
+      validUntil: Math.floor(Date.now() / 1000) + 60,
+      messages: [
+        {
+          address: 'EQВАШ_WALLET_АДРЕС', // ← замените на свой адрес
+          amount: (2 * 1e9).toString(), // 2 TON в нанотонах
+        },
+      ],
+    });
+  };
+
+  return (
+    <main style={{ textAlign: "center", padding: "20px" }}>
+      <h1>🎨 NFT Площадка</h1>
+
+      <TonConnectButton />
+
+      <div style={{
+        background: "#1e1e1e",
+        borderRadius: "12px",
+        padding: "15px",
+        marginTop: "30px",
+        display: "inline-block",
+        maxWidth: "320px"
+      }}>
+        <img
+          src="https://via.placeholder.com/300"
+          alt="NFT"
+          style={{ width: "100%", borderRadius: "10px" }}
+        />
+
+        <button
+          onClick={handleBuy}
+          style={{
+            background: "#00aaff",
+            border: "none",
+            color: "white",
+            padding: "12px 16px",
+            marginTop: "10px",
+            borderRadius: "8px",
+            fontSize: "16px",
+            cursor: "pointer",
+            width: "100%",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            gap: "8px"
+          }}
+        >
+          <img
+            src="https://cryptologos.cc/logos/the-open-network-ton-logo.png"
+            alt="TON"
+            width="20"
+            height="20"
+            style={{ borderRadius: "50%" }}
+          />
+          Купить за 2 TON
+        </button>
+      </div>
+    </main>
+  );
+}
