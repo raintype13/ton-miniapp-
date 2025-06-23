@@ -9,6 +9,7 @@ export default function Page() {
   const [wallet, setWallet] = useState<string>('');
   const [user, setUser] = useState<{ name: string; photo_url: string } | null>(null);
   const [purchasedNFTs, setPurchasedNFTs] = useState<number[]>([]);
+  const [error, setError] = useState<string>('');
 
   const nftList = Array.from({ length: 8 }, (_, i) => ({
     id: i,
@@ -18,9 +19,13 @@ export default function Page() {
 
   useEffect(() => {
     const tg = (window as any).Telegram?.WebApp;
-    if (tg?.initDataUnsafe?.user) {
-      const u = tg.initDataUnsafe.user;
-      setUser({ name: `${u.first_name || ''} ${u.last_name || ''}`.trim(), photo_url: u.photo_url });
+    tg?.ready();
+    const u = tg?.initDataUnsafe?.user;
+    if (u) {
+      setUser({
+        name: `${u.first_name || ''} ${u.last_name || ''}`.trim(),
+        photo_url: u.photo_url || 'https://cdn-icons-png.flaticon.com/512/149/149071.png',
+      });
     }
     if (tonConnectUI.account?.address) {
       setWallet(tonConnectUI.account.address);
@@ -28,6 +33,11 @@ export default function Page() {
   }, [tonConnectUI]);
 
   const handleBuy = async (nftId: number) => {
+    if (!tonConnectUI.account?.address) {
+      setError('Please connect your TON wallet first.\nПожалуйста, сначала подключите TON-кошелёк.');
+      return;
+    }
+    setError('');
     try {
       await tonConnectUI.sendTransaction({
         validUntil: Math.floor(Date.now() / 1000) + 60,
@@ -45,7 +55,7 @@ export default function Page() {
   };
 
   return (
-    <div className="min-h-screen pb-28 bg-[#08000e] text-white">
+    <div className="min-h-screen pb-28 bg-[#08000e] text-white relative">
       <div className="absolute top-4 left-4">
         <img src="/logo.png" alt="logo" className="w-[250px] h-[125px] object-contain" />
       </div>
@@ -53,6 +63,11 @@ export default function Page() {
       {tab === 'home' && (
         <div className="pt-36 px-4">
           <h1 className="text-2xl font-bold mb-6">Trade NFTs</h1>
+          {error && (
+            <div className="bg-red-600 text-white p-2 rounded mb-4 text-center whitespace-pre-line">
+              {error}
+            </div>
+          )}
           <div className="grid grid-cols-2 gap-4">
             {nftList.map((nft) => (
               <div key={nft.id} className="bg-[#120019] rounded-xl p-2 flex flex-col items-center">
@@ -124,7 +139,7 @@ export default function Page() {
         </div>
       )}
 
-      <div className="fixed bottom-1 left-0 w-full flex justify-around bg-[#12001f] text-white py-4 border-t border-[#2c1b3a]">
+      <div className="fixed bottom-0 left-0 w-full flex justify-around bg-[#12001f] text-white py-5 border-t-2 border-[#2c1b3a] z-50">
         <button onClick={() => setTab('home')}>
           <img src="/icons/home.png" alt="Home" className="w-10 h-10" />
         </button>
