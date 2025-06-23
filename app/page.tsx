@@ -86,6 +86,9 @@ export default function Page() {
               </div>
             ))}
           </div>
+          <p className="text-gray-400 text-center text-sm mt-6">
+            More NFTs coming soon.<br />Скоро будет добавлено больше NFT.
+          </p>
         </div>
       )}
 
@@ -130,11 +133,17 @@ export default function Page() {
 
           <div className="mt-6">
             <h4 className="text-md font-semibold mb-2">Your NFTs</h4>
-            <div className="grid grid-cols-2 gap-4">
-              {purchasedNFTs.map((id) => (
-                <img key={id} src={`/nft${id + 1}.png`} alt="nft" className="rounded w-full h-36 object-cover" />
-              ))}
-            </div>
+            {purchasedNFTs.length === 0 ? (
+              <p className="text-center text-sm text-gray-400">
+                Your NFTs will appear here.<br />Здесь появятся ваши NFT.
+              </p>
+            ) : (
+              <div className="grid grid-cols-2 gap-4">
+                {purchasedNFTs.map((id) => (
+                  <img key={id} src={`/nft${id + 1}.png`} alt="nft" className="rounded w-full h-36 object-cover" />
+                ))}
+              </div>
+            )}
           </div>
         </div>
       )}
