@@ -7,7 +7,7 @@ export default function Page() {
   const [tab, setTab] = useState<'home' | 'support' | 'profile'>('home');
   const [tonConnectUI] = useTonConnectUI();
   const [wallet, setWallet] = useState<string>('');
-  const [user, setUser] = useState<{ name: string; photo_url: string } | null>(null);
+  const [user, setUser] = useState<{ name: string; photo_url: string; username?: string } | null>(null);
   const [purchasedNFTs, setPurchasedNFTs] = useState<number[]>([]);
   const [error, setError] = useState<string>('');
 
@@ -23,11 +23,11 @@ export default function Page() {
     if (tg?.initDataUnsafe?.user) {
       const u = tg.initDataUnsafe.user;
       setUser({
-        name: `${u.first_name ?? ''} ${u.last_name ?? ''}`.trim(),
+        name: `${u.first_name ?? ''} ${u.last_name ?? ''}`.trim() || u.username || 'User',
         photo_url: u.photo_url ?? 'https://cdn-icons-png.flaticon.com/512/149/149071.png',
+        username: u.username,
       });
     } else {
-      // fallback avatar + label if Telegram user object not found
       setUser({
         name: 'Guest',
         photo_url: 'https://cdn-icons-png.flaticon.com/512/149/149071.png',
@@ -44,6 +44,10 @@ export default function Page() {
       return;
     }
     setError('');
+
+    const confirmed = window.confirm('Are you sure you want to buy this NFT?\nВы уверены, что хотите купить этот NFT?');
+    if (!confirmed) return;
+
     try {
       await tonConnectUI.sendTransaction({
         validUntil: Math.floor(Date.now() / 1000) + 60,
@@ -131,6 +135,7 @@ export default function Page() {
             />
             <div>
               <h3 className="text-lg font-bold">{user?.name || 'User'}</h3>
+              {user?.username && <p className="text-sm text-gray-400">@{user.username}</p>}
               <p className="text-sm text-gray-400">{wallet ? 'Connected' : 'Not connected'}</p>
             </div>
           </div>
@@ -140,7 +145,7 @@ export default function Page() {
           <div className="mt-6">
             <h4 className="text-md font-semibold mb-2">Your NFTs</h4>
             {purchasedNFTs.length === 0 ? (
-              <p className="text-center text-sm text-gray-400">
+              <p className="text-center text-sm text-gray-400 mt-6">
                 Your NFTs will appear here.<br />Здесь появятся ваши NFT.
               </p>
             ) : (
