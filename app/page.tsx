@@ -83,13 +83,24 @@ export default function Home() {
           </button>
         </div>
       ) : (
-        <button
-          onClick={handleWalletAction}
-          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-        >
-          Connect TON Wallet
-        </button>
-      )}
-    </main>
-  );
-}
+     <button
+  onClick={async () => {
+    if (!tonConnectUI.connected || !tonWalletAddress) {
+      alert("Сначала подключите кошелёк");
+      return;
+    }
+
+    await tonConnectUI.sendTransaction({
+      validUntil: Math.floor(Date.now() / 1000) + 60,
+      messages: [
+        {
+          address: 'UQBELu8ybArzO3GlF6zdEfPnrjAymVkAAhJGL5m9xHDWyL2R', // ← замените на ваш адрес!
+          amount: (2 * 1e9).toString(), // 2 TON в нанотонах
+        },
+      ],
+    });
+  }}
+  className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mt-4"
+>
+  Купить NFT за 2 TON
+</button>
