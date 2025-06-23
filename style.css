@@ -1,0 +1,33 @@
+body {
+  background: #121212;
+  color: white;
+  font-family: sans-serif;
+  text-align: center;
+  padding: 20px;
+}
+.container {
+  max-width: 400px;
+  margin: auto;
+}
+button {
+  background: #0088cc;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+}
+.nfts {
+  margin-top: 20px;
+}
+.nft-card {
+  background: #1e1e1e;
+  border-radius: 10px;
+  padding: 15px;
+  margin-bottom: 15px;
+}
+.nft-card img {
+  width: 100%;
+  border-radius: 10px;
+}
