@@ -1,13 +1,31 @@
-'use client'
+'use client';
 
-import { useState, useEffect } from 'react';
-import { TonConnectButton, useTonAddress, useTonConnectUI } from '@tonconnect/ui-react';
+import { useEffect, useState } from 'react';
+import { TonConnectButton, useTonConnectUI } from '@tonconnect/ui-react';
 
 export default function Page() {
   const [tab, setTab] = useState<'home' | 'support' | 'profile'>('home');
-  const userWallet = useTonAddress();
   const [tonConnectUI] = useTonConnectUI();
+  const [wallet, setWallet] = useState<string>('');
+  const [user, setUser] = useState<{ name: string; photo_url: string } | null>(null);
   const [purchasedNFTs, setPurchasedNFTs] = useState<number[]>([]);
+
+  const nftList = Array.from({ length: 8 }, (_, i) => ({
+    id: i,
+    image: `/nft${i + 1}.png`,
+    price: 4,
+  }));
+
+  useEffect(() => {
+    const tg = (window as any).Telegram?.WebApp;
+    if (tg?.initDataUnsafe?.user) {
+      const u = tg.initDataUnsafe.user;
+      setUser({ name: `${u.first_name || ''} ${u.last_name || ''}`.trim(), photo_url: u.photo_url });
+    }
+    if (tonConnectUI.account?.address) {
+      setWallet(tonConnectUI.account.address);
+    }
+  }, [tonConnectUI]);
 
   const handleBuy = async (nftId: number) => {
     try {
@@ -21,20 +39,13 @@ export default function Page() {
         ],
       });
       setPurchasedNFTs([...purchasedNFTs, nftId]);
-    } catch (error) {
-      console.error('Transaction failed:', error);
+    } catch (err) {
+      console.error('Purchase failed:', err);
     }
   };
 
-  const nftList = Array.from({ length: 8 }, (_, i) => ({
-    id: i,
-    image: `/nft${i + 1}.png`,
-    price: 4,
-  }));
-
   return (
-    <div className="min-h-screen pb-24 bg-[#08000e] text-white">
-      {/* Логотип */}
+    <div className="min-h-screen pb-28 bg-[#08000e] text-white">
       <div className="absolute top-4 left-4">
         <img src="/logo.png" alt="logo" className="w-[250px] h-[125px] object-contain" />
       </div>
@@ -90,13 +101,13 @@ export default function Page() {
         <div className="pt-36 px-6">
           <div className="flex items-center gap-4 mb-4">
             <img
-              src="https://cdn-icons-png.flaticon.com/512/149/149071.png"
+              src={user?.photo_url || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'}
               alt="avatar"
               className="w-14 h-14 rounded-full"
             />
             <div>
-              <h3 className="text-lg font-bold">{userWallet ? userWallet.slice(0, 6) + '...' + userWallet.slice(-4) : 'User'}</h3>
-              <p className="text-sm text-gray-400">{userWallet ? 'Connected' : 'Not connected'}</p>
+              <h3 className="text-lg font-bold">{user?.name || 'User'}</h3>
+              <p className="text-sm text-gray-400">{wallet ? 'Connected' : 'Not connected'}</p>
             </div>
           </div>
 
@@ -113,8 +124,7 @@ export default function Page() {
         </div>
       )}
 
-      {/* Нижняя навигация */}
-      <div className="fixed bottom-3 left-0 w-full flex justify-around bg-[#12001f] text-white py-3 border-t border-[#2c1b3a]">
+      <div className="fixed bottom-1 left-0 w-full flex justify-around bg-[#12001f] text-white py-4 border-t border-[#2c1b3a]">
         <button onClick={() => setTab('home')}>
           <img src="/icons/home.png" alt="Home" className="w-10 h-10" />
         </button>
