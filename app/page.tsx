@@ -178,3 +178,9 @@ export default function Home() {
     </main>
   );
 }
+<main className="min-h-screen p-4 overflow-y-auto">
+  {<div className="fixed top-4 left-4 z-50">
+  <img src="/logo.png" alt="Logo" className="w-12 h-12" />
+</div>
+}
+</main>
