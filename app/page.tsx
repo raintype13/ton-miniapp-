@@ -1,186 +1,94 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react';
-import { useTonConnectUI } from '@tonconnect/ui-react';
-import { Address } from "@ton/core";
+import { useState } from 'react';
+import { TonConnectButton, useTonAddress, useTonConnectUI } from '@tonconnect/ui-react';
 
-export default function Home() {
-  const [tonConnectUI] = useTonConnectUI();
-  const [tonWalletAddress, setTonWalletAddress] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  const handleWalletConnection = useCallback((address: string) => {
-    setTonWalletAddress(address);
-    console.log("Wallet connected successfully!");
-    setIsLoading(false);
-  }, []);
-
-  const handleWalletDisconnection = useCallback(() => {
-    setTonWalletAddress(null);
-    console.log("Wallet disconnected successfully!");
-    setIsLoading(false);
-  }, []);
-
-  useEffect(() => {
-    const checkWalletConnection = async () => {
-      if (tonConnectUI.account?.address) {
-        handleWalletConnection(tonConnectUI.account?.address);
-      } else {
-        handleWalletDisconnection();
-      }
-    };
-
-    checkWalletConnection();
-
-    const unsubscribe = tonConnectUI.onStatusChange((wallet) => {
-      if (wallet) {
-        handleWalletConnection(wallet.account.address);
-      } else {
-        handleWalletDisconnection();
-      }
-    });
-
-    return () => {
-      unsubscribe();
-    };
-  }, [tonConnectUI, handleWalletConnection, handleWalletDisconnection]);
-
-  const handleWalletAction = async () => {
-    if (tonConnectUI.connected) {
-      setIsLoading(true);
-      await tonConnectUI.disconnect();
-    } else {
-      await tonConnectUI.openModal();
-    }
-  };
-
-  const formatAddress = (address: string) => {
-    const tempAddress = Address.parse(address).toString();
-    return `${tempAddress.slice(0, 4)}...${tempAddress.slice(-4)}`;
-  };
-
-  if (isLoading) {
-    return (
-      <main className="flex min-h-screen flex-col items-center justify-center">
-        <div className="bg-gray-200 text-gray-700 font-bold py-2 px-4 rounded">
-          Loading...
-        </div>
-      </main>
-    );
-  }
-
-  return (
-    <main className="flex min-h-screen flex-col items-center justify-center">
-      <h1 className="text-4xl font-bold mb-8">TON Connect Demo</h1>
-      {tonWalletAddress ? (
-        <div className="flex flex-col items-center">
-          <p className="mb-4">Connected: {formatAddress(tonWalletAddress)}</p>
-          <button
-            onClick={handleWalletAction}
-            className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
-          >
-            Disconnect Wallet
-          </button>
-        </div>
-      ) : (
-     <button
-  onClick={async () => {
-    if (!tonConnectUI.connected || !tonWalletAddress) {
-      alert("Сначала подключите кошелёк");
-      return;
-    }
-
-    await tonConnectUI.sendTransaction({
-      validUntil: Math.floor(Date.now() / 1000) + 60,
-      messages: [
-        {
-          address: 'UQBELu8ybArzO3GlF6zdEfPnrjAymVkAAhJGL5m9xHDWyL2R', // ← замените на ваш адрес!
-          amount: (2 * 1e9).toString(), // 2 TON в нанотонах
-        },
-      ],
-    });
-  }}
-  className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mt-4"
->
-  Купить NFT за 2 TON
-</button>
-import { TonConnectButton, useTonAddress, useTonConnectUI } from "@tonconnect/ui-react";
-
-export default function Home() {
-  const [tonConnectUI] = useTonConnectUI();
+export default function Page() {
+  const [tab, setTab] = useState<'home' | 'support' | 'profile'>('home');
   const userWallet = useTonAddress();
+  const [tonConnectUI] = useTonConnectUI();
 
-  const handleBuy = () => {
-    if (!userWallet) {
-      alert("Сначала подключите TON-кошелёк.");
-      return;
-    }
-
-    tonConnectUI.sendTransaction({
-      validUntil: Math.floor(Date.now() / 1000) + 60,
-      messages: [
-        {
-          address: 'EQВАШ_WALLET_АДРЕС', // ← замените на свой адрес
-          amount: (2 * 1e9).toString(), // 2 TON в нанотонах
-        },
-      ],
-    });
-  };
+  // NFT MOCK DATA (можете заменить на реальные данные)
+  const nftList = Array.from({ length: 10 }, (_, i) => ({
+    id: i,
+    image: `/nft${(i % 4) + 1}.png`, // заглушки типа /nft1.png и т.д.
+    price: 4,
+  }));
 
   return (
-    <main style={{ textAlign: "center", padding: "20px" }}>
-      <h1>🎨 NFT Площадка</h1>
+    <div className="min-h-screen pb-20 bg-gray-900 text-white">
+      {/* Логотип */}
+      {tab === 'home' && (
+        <div className="p-4">
+          <img src="/logo.png" alt="logo" className="w-12 h-12" />
+          <h1 className="text-2xl font-bold mt-4">Trade NFTs</h1>
 
-      <TonConnectButton />
+          {/* Сетка NFT */}
+          <div className="grid grid-cols-2 gap-4 mt-4 overflow-y-auto">
+            {nftList.map((nft) => (
+              <div key={nft.id} className="bg-gray-800 rounded-xl p-2">
+                <img src={nft.image} alt="nft" className="rounded mb-2" />
+                <div className="flex items-center justify-center gap-1 text-blue-300">
+                  <img
+                    src="https://cryptologos.cc/logos/the-open-network-ton-logo.png"
+                    alt="ton"
+                    className="w-4 h-4"
+                  />
+                  {nft.price}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
-      <div style={{
-        background: "#1e1e1e",
-        borderRadius: "12px",
-        padding: "15px",
-        marginTop: "30px",
-        display: "inline-block",
-        maxWidth: "320px"
-      }}>
-        <img
-          src="https://via.placeholder.com/300"
-          alt="NFT"
-          style={{ width: "100%", borderRadius: "10px" }}
-        />
+      {/* SUPPORT вкладка */}
+      {tab === 'support' && (
+        <div className="p-6">
+          <h2 className="text-xl font-bold mb-4">Contact us</h2>
+          <a
+            href="https://t.me/SLOTNFTsupport_bot"
+            target="_blank"
+            className="bg-blue-600 hover:bg-blue-700 py-2 px-4 rounded text-white font-semibold"
+          >
+            Write to Support
+          </a>
+        </div>
+      )}
 
-        <button
-          onClick={handleBuy}
-          style={{
-            background: "#00aaff",
-            border: "none",
-            color: "white",
-            padding: "12px 16px",
-            marginTop: "10px",
-            borderRadius: "8px",
-            fontSize: "16px",
-            cursor: "pointer",
-            width: "100%",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            gap: "8px"
-          }}
-        >
-          <img
-            src="https://cryptologos.cc/logos/the-open-network-ton-logo.png"
-            alt="TON"
-            width="20"
-            height="20"
-            style={{ borderRadius: "50%" }}
-          />
-          Купить за 2 TON
-        </button>
+      {/* PROFILE вкладка */}
+      {tab === 'profile' && (
+        <div className="p-6">
+          <div className="flex items-center gap-4 mb-4">
+            <img
+              src="https://cdn-icons-png.flaticon.com/512/149/149071.png"
+              alt="avatar"
+              className="w-12 h-12 rounded-full"
+            />
+            <div>
+              <h3 className="text-lg font-bold">User</h3>
+              <p className="text-sm text-gray-400">{userWallet ? userWallet.slice(0, 12) + '...' : 'Not connected'}</p>
+            </div>
+          </div>
+
+          <TonConnectButton />
+
+          <div className="mt-6">
+            <h4 className="text-md font-semibold mb-2">Your NFTs</h4>
+            <div className="grid grid-cols-2 gap-4">
+              {/* Здесь должны быть только купленные NFT */}
+              <img src="/nft1.png" alt="nft" className="rounded" />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Нижняя навигация */}
+      <div className="fixed bottom-0 left-0 w-full flex justify-around bg-gray-800 text-white py-2 border-t border-gray-700">
+        <button onClick={() => setTab('home')} className={tab === 'home' ? 'text-blue-400' : ''}>🏠</button>
+        <button onClick={() => setTab('support')} className={tab === 'support' ? 'text-blue-400' : ''}>📞</button>
+        <button onClick={() => setTab('profile')} className={tab === 'profile' ? 'text-blue-400' : ''}>👤</button>
       </div>
-    </main>
+    </div>
   );
 }
-<main className="min-h-screen p-4 overflow-y-auto">
-  {<div className="fixed top-4 left-4 z-50">
-  <img src="/logo.png" alt="Logo" className="w-12 h-12" />
-</div>
-}
-</main>
