@@ -35,7 +35,7 @@ const nfts: Nft[] = [
   },
 ];
 
-const Page = () => {
+const Page: React.FC = () => {
   const [tonConnectUI] = useTonConnectUI();
   const wallet = useTonWallet();
   const [selectedTab, setSelectedTab] = useState<'home' | 'support' | 'profile'>('home');
@@ -60,7 +60,7 @@ const Page = () => {
         },
       ],
     });
-    setOwnedNfts((prev) => [...prev, buyingNft]);
+    setOwnedNfts((prev: Nft[]) => [...prev, buyingNft]);
     setBuyingNft(null);
   };
 
@@ -106,7 +106,9 @@ const Page = () => {
         <div className="mt-6 text-center">
           <Image src="/logo.png" alt="Avatar" width={80} height={80} className="mx-auto rounded-full" />
           <h2 className="text-xl font-semibold mt-2">NFT Trader</h2>
-          <p className="text-sm text-gray-400">{wallet?.account.address.slice(0, 6)}...{wallet?.account.address.slice(-4)}</p>
+          <p className="text-sm text-gray-400">
+            {wallet?.account?.address ? `${wallet.account.address.slice(0, 6)}...${wallet.account.address.slice(-4)}` : 'No Wallet Connected'}
+          </p>
 
           <TonConnectButton />
           <h3 className="text-lg font-bold mt-6">Your NFTs</h3>
