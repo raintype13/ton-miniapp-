@@ -1,225 +1,152 @@
-// ✅ Главный файл страницы (page.tsx)
+// types.ts
+export type Nft = {
+  id: string;
+  name: string;
+  image: string;
+  price: number;
+  available: number;
+  total: number;
+};
+
+// page.tsx
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { useTonConnectUI } from '@tonconnect/ui-react';
-import { useRouter, usePathname } from 'next/navigation';
+import React, { useState } from 'react';
 import Image from 'next/image';
+import { useTonConnectUI, useTonWallet, TonConnectButton } from '@tonconnect/ui-react';
+import { Nft } from './types';
 
-// Данные по NFT
-const nftList = [
-  { id: 1, name: 'LABUBU LOL', price: 13, left: 23, total: 35, image: '/nft1.png' },
-  { id: 2, name: 'NFT #2', price: 4, left: 10, total: 35, image: '/nft2.png' },
-  // ...
+const nfts: Nft[] = [
+  {
+    id: '1',
+    name: 'LABUBU LOL',
+    image: '/nft1.png',
+    price: 13,
+    available: 23,
+    total: 35,
+  },
+  {
+    id: '2',
+    name: 'PINK GHOST',
+    image: '/nft2.png',
+    price: 4,
+    available: 0,
+    total: 35,
+  },
 ];
 
-export default function Page() {
-  const pathname = usePathname();
-  const router = useRouter();
-  const [activeTab, setActiveTab] = useState(pathname);
+const Page = () => {
   const [tonConnectUI] = useTonConnectUI();
-  const [showModal, setShowModal] = useState(false);
-  const [selectedNFT, setSelectedNFT] = useState(null);
-  const [ownedNFTs, setOwnedNFTs] = useState<number[]>([]);
-  const [tgUser, setTgUser] = useState<any>(null);
+  const wallet = useTonWallet();
+  const [selectedTab, setSelectedTab] = useState<'home' | 'support' | 'profile'>('home');
+  const [ownedNfts, setOwnedNfts] = useState<Nft[]>([]);
+  const [buyingNft, setBuyingNft] = useState<Nft | null>(null);
 
-  useEffect(() => {
-    // Подтянуть данные пользователя из Telegram
-    // @ts-ignore
-    if (window?.Telegram?.WebApp?.initDataUnsafe?.user) {
-      // @ts-ignore
-      setTgUser(window.Telegram.WebApp.initDataUnsafe.user);
-    }
-  }, []);
-
-  const openModal = (nft: any) => {
-    if (!tonConnectUI.account?.address) {
-      alert('Connect wallet first!\nСначала подключите кошелёк.');
+  const handleBuyClick = (nft: Nft) => {
+    if (!wallet) {
+      alert('Please connect your TON wallet.\nПожалуйста, подключите кошелек TON.');
       return;
     }
-    setSelectedNFT(nft);
-    setShowModal(true);
+    setBuyingNft(nft);
   };
 
-  const handleBuy = () => {
-    if (!selectedNFT) return;
-    // здесь должна быть логика оплаты через TonConnect
-    setOwnedNFTs([...ownedNFTs, selectedNFT.id]);
-    setShowModal(false);
+  const confirmPurchase = () => {
+    if (!buyingNft) return;
+    tonConnectUI.sendTransaction({
+      messages: [
+        {
+          address: 'UQBELu8ybArzO3GlF6zdEfPnrjAymVkAAhJGL5m9xHDWyL2R',
+          amount: (buyingNft.price * 1_000_000_000).toString(),
+        },
+      ],
+    });
+    setOwnedNfts((prev) => [...prev, buyingNft]);
+    setBuyingNft(null);
   };
 
-  const tabs = [
-    { id: '/', label: 'Home', icon: '/home.png' },
-    { id: '/support', label: 'Support', icon: '/support.png' },
-    { id: '/profile', label: 'Profile', icon: '/profile.png' }
-  ];
-
-  const renderTabs = () => (
-    <div className="fixed bottom-0 w-full flex justify-around items-center h-14 bg-[#0f0017]">
-      {tabs.map(tab => (
-        <button
-          key={tab.id}
-          onClick={() => router.push(tab.id)}
-          className="flex flex-col items-center"
-        >
-          <Image
-            src={tab.icon}
-            alt={tab.label}
-            width={40}
-            height={40}
-            className={pathname === tab.id ? 'opacity-100' : 'opacity-50'}
-          />
-        </button>
-      ))}
-    </div>
-  );
+  const visibleNfts = nfts.filter((nft) => nft.available > 0);
 
   return (
-    <div className="min-h-screen bg-[#08000e] text-white pb-20">
-      {/* Шапка */}
-      <div className="flex justify-between items-center p-4 pt-6">
-        <Image src="/logo.png" alt="logo" width={100} height={50} />
-        {!tonConnectUI.connected && (
-          <button
-            onClick={() => tonConnectUI.openModal()}
-            className="bg-blue-500 text-white px-3 py-1 rounded text-sm"
-          >
-            Connect TON
-          </button>
-        )}
+    <div className="bg-[#08000e] text-white min-h-screen p-4">
+      <div className="flex items-center justify-between">
+        <Image src="/logo.png" alt="Logo" width={200} height={100} className="ml-2 mt-2" />
+        <TonConnectButton />
       </div>
 
-      {/* Контент: Home */}
-      {pathname === '/' && (
-        <div className="px-4">
-          <h2 className="text-xl font-bold mb-4">Trade NFTs</h2>
-          <div className="grid grid-cols-2 gap-4">
-            {nftList.filter(n => n.left > 0).map(nft => (
-              <div
-                key={nft.id}
-                className="rounded-xl bg-[#14001f] p-2 flex flex-col items-center"
-              >
-                <Image
-                  src={nft.image}
-                  alt={nft.name}
-                  width={150}
-                  height={200}
-                  className="rounded-lg"
-                />
-                <button
-                  onClick={() => openModal(nft)}
-                  className="mt-2 px-2 py-1 flex items-center justify-center bg-[#1a0029] rounded-full text-sm"
-                >
-                  <Image src="/ton-icon.png" alt="ton" width={16} height={16} className="mr-1" />
-                  {nft.price}
-                </button>
+      {selectedTab === 'home' && (
+        <div>
+          <h1 className="text-2xl font-bold mt-2">Trade NFTs</h1>
+          <div className="grid grid-cols-2 gap-4 mt-4">
+            {visibleNfts.map((nft) => (
+              <div key={nft.id} className="bg-transparent p-2 relative">
+                <Image src={nft.image} alt={nft.name} width={400} height={540} className="rounded-xl" />
+                <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex items-center bg-[#1c001f] px-3 py-1 rounded-full">
+                  <Image src="/ton-icon.png" alt="TON" width={20} height={20} />
+                  <span className="ml-1 text-base">{nft.price}</span>
+                </div>
+                <button onClick={() => handleBuyClick(nft)} className="mt-2 w-full bg-purple-800 py-2 rounded-lg text-sm">Buy</button>
               </div>
             ))}
           </div>
-
-          {/* Заглушка */}
-          <p className="text-gray-400 text-sm text-center mt-6">
-            More NFTs will be added soon.<br />Скоро будет добавлено больше NFT.
+          <p className="text-center text-gray-400 text-sm mt-6">
+            More NFTs coming soon.<br />Скоро будет добавлено больше NFT.
           </p>
         </div>
       )}
 
-      {/* Support */}
-      {pathname === '/support' && (
-        <div className="px-4 pt-4">
-          <h2 className="text-xl font-bold mb-4">Contact us</h2>
-          <a href="https://t.me/SLOTNFTsupport_bot" className="block bg-blue-500 text-white text-center py-2 rounded mb-4">
-            Write to Support
-          </a>
-          <h2 className="text-lg font-bold mb-2">SLOT NFT Channel</h2>
-          <a href="https://t.me/SLOTNFTs" className="block bg-purple-700 text-white text-center py-2 rounded">
-            Join Channel
-          </a>
+      {selectedTab === 'support' && (
+        <div className="mt-8 text-center">
+          <h2 className="text-xl font-bold mb-4">Contact Us</h2>
+          <a href="https://t.me/SLOTNFTsupport_bot" target="_blank" rel="noreferrer" className="block bg-blue-600 py-2 rounded mb-2">Write to Support</a>
+          <a href="https://t.me/SLOTNFTs" target="_blank" rel="noreferrer" className="block bg-purple-700 py-2 rounded">Join SLOT NFT Channel</a>
         </div>
       )}
 
-      {/* Profile */}
-      {pathname === '/profile' && (
-        <div className="px-4 pt-4 flex flex-col items-center">
-          <Image
-            src={tgUser?.photo_url || '/profile.png'}
-            alt="avatar"
-            width={64}
-            height={64}
-            className="rounded-full mb-2"
-          />
-          <h2 className="text-lg font-semibold">{tgUser?.first_name || 'User'}</h2>
-          <p className="text-gray-500 text-sm mb-4">@{tgUser?.username || 'username'}</p>
-          <button
-            onClick={() => tonConnectUI.openModal()}
-            className="bg-blue-500 text-white px-4 py-2 rounded mb-6"
-          >
-            Connect TON Wallet
-          </button>
+      {selectedTab === 'profile' && (
+        <div className="mt-6 text-center">
+          <Image src="/logo.png" alt="Avatar" width={80} height={80} className="mx-auto rounded-full" />
+          <h2 className="text-xl font-semibold mt-2">NFT Trader</h2>
+          <p className="text-sm text-gray-400">{wallet?.account.address.slice(0, 6)}...{wallet?.account.address.slice(-4)}</p>
 
-          {/* Купленные NFT */}
-          {ownedNFTs.length === 0 ? (
-            <p className="text-gray-400 text-sm text-center">
-              Your NFTs will appear here.<br />Здесь появятся ваши NFT.
-            </p>
-          ) : (
-            <div className="grid grid-cols-2 gap-4">
-              {nftList.filter(n => ownedNFTs.includes(n.id)).map(nft => (
-                <Image
-                  key={nft.id}
-                  src={nft.image}
-                  alt={nft.name}
-                  width={150}
-                  height={200}
-                  className="rounded-xl"
-                />
+          <TonConnectButton />
+          <h3 className="text-lg font-bold mt-6">Your NFTs</h3>
+          {ownedNfts.length > 0 ? (
+            <div className="grid grid-cols-2 gap-4 mt-4">
+              {ownedNfts.map((nft) => (
+                <Image key={nft.id} src={nft.image} alt={nft.name} width={400} height={540} className="rounded-xl" />
               ))}
             </div>
+          ) : (
+            <p className="text-center text-gray-400 text-sm mt-6">
+              Your NFTs will appear here.<br />Здесь появятся ваши NFT.
+            </p>
           )}
-
-          <button
-            onClick={() => alert('Selling NFTs will be available soon.')}
-            className="mt-6 px-4 py-2 bg-purple-700 text-white rounded"
-          >
-            Sell NFT
-          </button>
         </div>
       )}
 
-      {renderTabs()}
+      <div className="fixed bottom-0 left-0 w-full bg-[#120018] py-4 flex justify-around items-center">
+        <Image src="/home.png" alt="Home" width={40} height={40} onClick={() => setSelectedTab('home')} className={selectedTab === 'home' ? 'opacity-100' : 'opacity-50'} />
+        <Image src="/support.png" alt="Support" width={40} height={40} onClick={() => setSelectedTab('support')} className={selectedTab === 'support' ? 'opacity-100' : 'opacity-50'} />
+        <Image src="/profile.png" alt="Profile" width={40} height={40} onClick={() => setSelectedTab('profile')} className={selectedTab === 'profile' ? 'opacity-100' : 'opacity-50'} />
+      </div>
 
-      {/* Модалка покупки */}
-      {showModal && selectedNFT && (
+      {buyingNft && (
         <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
-          <div className="bg-[#10001a] rounded-2xl p-6 w-4/5">
-            <div className="flex gap-4">
-              <Image src={selectedNFT.image} alt="nft" width={80} height={100} />
-              <div>
-                <h3 className="text-white font-bold text-lg">{selectedNFT.name}</h3>
-                <p className="text-sm text-gray-400">{selectedNFT.left}/{selectedNFT.total} available</p>
-                <p className="text-white font-bold mt-1">{selectedNFT.price} TON</p>
-              </div>
-            </div>
-            <p className="text-center text-white text-sm mt-4">
-              Are you sure you want buy this NFT?<br />Вы уверены, что хотите купить этот NFT?
-            </p>
-            <div className="flex justify-between mt-4">
-              <button
-                onClick={() => setShowModal(false)}
-                className="bg-gray-700 text-white px-4 py-2 rounded"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleBuy}
-                className="bg-white text-black px-4 py-2 rounded"
-              >
-                Yes
-              </button>
+          <div className="bg-[#120018] p-4 rounded-3xl w-[90%] max-w-xs text-center">
+            <Image src={buyingNft.image} alt={buyingNft.name} width={100} height={100} className="mx-auto rounded-xl" />
+            <h2 className="text-lg font-bold mt-2">{buyingNft.name}</h2>
+            <p className="text-sm text-gray-400">{buyingNft.available}/{buyingNft.total} available</p>
+            <p className="text-lg mt-1">{buyingNft.price} TON</p>
+            <p className="text-sm mt-4">Are you sure you want buy this NFT?<br />Вы уверены, что хотите купить этот NFT?</p>
+            <div className="mt-4 flex justify-between">
+              <button className="bg-gray-700 px-4 py-1 rounded-full" onClick={() => setBuyingNft(null)}>Cancel</button>
+              <button className="bg-white text-black px-4 py-1 rounded-full" onClick={confirmPurchase}>Yes</button>
             </div>
           </div>
         </div>
       )}
     </div>
   );
-}
+};
+
+export default Page;
