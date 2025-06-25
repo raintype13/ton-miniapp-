@@ -1,7 +1,12 @@
 {
-  "url": "https://your-miniapp-url.vercel.app",
-  "name": "SLOTCOIN Marketplace",
-  "iconUrl": "https://your-miniapp-url.vercel.app/logo.png",
-  "termsOfUseUrl": "https://your-site.com/terms",
-  "privacyPolicyUrl": "https://your-site.com/privacy"
+  "manifestVersion": "1.0",
+  "name": "ton-miniapp-",
+  "description": "NFT Marketplace for SLOTCOIN",
+  "url": "https://ton-miniapp-.vercel.app",
+  "iconUrl": "https://ton-miniapp-.vercel.app/PICTUREprofile.png",
+  "termsOfUseUrl": "https://ton-miniapp-.vercel.app/terms",
+  "privacyPolicyUrl": "https://ton-miniapp-.vercel.app/privacy",
+  "platforms": [
+    "telegram"
+  ]
 }
