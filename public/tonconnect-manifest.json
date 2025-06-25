@@ -1,9 +1,9 @@
 {
   "manifestVersion": "1.0",
-  "name": "ton-miniapp-",
+  "name": "SLOTCOIN Marketplace",
   "description": "NFT Marketplace for SLOTCOIN",
   "url": "https://ton-miniapp-.vercel.app",
-  "iconUrl": "https://ton-miniapp-.vercel.app/PICTUREprofile.png",
+  "iconUrl": "https://ton-miniapp-.vercel.app/logo.png",
   "termsOfUseUrl": "https://ton-miniapp-.vercel.app/terms",
   "privacyPolicyUrl": "https://ton-miniapp-.vercel.app/privacy",
   "platforms": [
