@@ -154,3 +154,4 @@ const Page: NextPage = () => {
 };
 
 export default Page;
+npm run build
